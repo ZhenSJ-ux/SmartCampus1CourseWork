@@ -85,8 +85,15 @@ easier to extend when more filters are needed.
 The Sub-Resource Locator Pattern (10 Marks)
 - Question: Discuss the architectural benefits of the Sub-Resource Locator pattern. How
 does delegating logic to separate classes help manage complexity in large APIs compared
-to defining every nested path (e.g., sensors/{id}/readings/{rid}) in one massive con-
-troller class?
+to defining every nested path (e.g., sensors/{id}/readings/{rid}) in one massive controller class?
+
+Answer:
+The Sub resource locator pattern improves API design by spliting the tasks into smaller bits, which dedicated classes instead of
+placing all logic into one controller. Doing this the design becomes more simpler to manage as it improves the readability of the 
+separation and has a clear defined responsibility, as all of this would not affect the API. When using this in a larger scale system, 
+it becomes to show its usefulness due to it reduces duplication, easier to extend the API with nested resources and supports better
+organisation for the future. But defining all the nested paths like sensors/{id}/readings/{rid} would become difficult to understand as
+testing and maintaining would take much more of a longer approach. 
 
 
 ## Part 5: Advanced Error Handling, Exception Mapping & Logging (30 Marks)
@@ -94,6 +101,13 @@ troller class?
 Dependency Validation (422 Unprocessable Entity) (10 Marks)
 - Question: Why is HTTP 422 often considered more semantically accurate than a standard
 404 when the issue is a missing reference inside a valid JSON payload?
+Answer:
+HTTP 422 Unprocessable Entity is considered more semantically accurate thatn the standard 404 Not Found when dealing with missing references
+inside a valid JSON payload is because of the correctness of the data being submitted. For example if the client has sent a syntactically valid request
+that the server is able to understand but the request is not granted due to validation errors, like referencing the room that does not exist when creating
+a sensor. The use for 422 can communicate with the structure of the request that is correct with the content invalid, which means the client can understand
+the error. On the other end with 404 response, it would incorrectly suggerst the request resource not be found. This creates problem as it cant accurately
+reflect the problem. Which is why using 422 improves API clarity, aligns with RESTful principles, and provides more meaningful feedback to the client.
 
 The Global Safety Net (500) (5 Marks)
 - Question: From a cybersecurity standpoint, explain the risks associated with exposing
@@ -106,7 +120,13 @@ logging, rather than manually inserting Logger.info() statements inside every si
 source method?
 
 
-  
+### Question 2
+From a cybersecurity perspective, exposing internal Java stack traces to external API consumers poses serious risks because they can reveal detailed information about the internal workings of the application. Stack traces may include class names, package structures, file paths, method names, and even line numbers, all of which can provide an attacker with valuable insights into how the system is designed and implemented. This information can be used to identify potential vulnerabilities, understand the application’s architecture, and target specific components for exploitation, such as known weaknesses in libraries or poorly secured endpoints. Additionally, exposing such details violates the principle of information hiding and increases the attack surface of the system. To mitigate these risks, APIs should return generic and user-friendly error messages to clients while logging detailed stack traces internally for debugging and monitoring purposes.
+
+### Question 3
+Using JAX-RS filters for handling cross-cutting concerns such as logging is advantageous because it allows developers to centralise this functionality in a single location rather than duplicating logging logic across multiple resource methods. By implementing logging at the filter level, every incoming request and outgoing response can be consistently captured without modifying individual endpoint implementations. This approach improves maintainability, as changes to logging behaviour only need to be made in one place, and it reduces code duplication, making the overall codebase cleaner and easier to manage. Furthermore, it enforces a consistent logging strategy across the entire API, which is important for debugging, monitoring, and auditing purposes. In contrast, manually inserting Logger statements into each resource method would lead to repetitive code, increase the likelihood of inconsistencies, and make the application harder to maintain as it scales.
+
+
 
 
 
