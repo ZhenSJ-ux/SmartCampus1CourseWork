@@ -262,7 +262,7 @@ considered a hallmark of advanced RESTful design (HATEOAS)? How does this approa
 benefit client developers compared to static documentation?
 
 
-##Part2
+## Part2
 
 
 
