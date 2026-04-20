@@ -57,6 +57,7 @@ http://localhost:8080/SmartCampus1/api/v1
 Bootstrap a Maven project integrating a JAX-RS implementation (e.g., Jersey) and a lightweight
 servlet container or embedded server.
 
+Maven project integrating a JAX-RS implementation (e.g., Jersey):
  <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -118,14 +119,90 @@ servlet container or embedded server.
 </project>
 
 
+servlet container:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+         <!-- All Part1 and some Part5-->
+    <!-- PART1: Register Jersey as a RESTAPI servlet-->
+    <servlet>
+        <servlet-name>jersey-servlet</servlet-name>
+        <!-- Handles all the REST request from Jersey servlet container-->
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+    <!-- To tell Jersey  where to find the resources, mappers and filters-->
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>
+                com.mycompany.smartcampus1.resource,<!--Part1 REST endpoint-->
+                com.mycompany.smartcampus1.mappers, <!--Part5 ExceptionMappers-->
+                com.mycompany.smartcampus1.filter <!--Part5 LoggingFilter-->
+            </param-value>
+        </init-param>
+        <!-- load servlet when server starts-->
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>jersey-servlet</servlet-name> <!-- Maps the API to Jersey-->
+        <url-pattern>/api/v1/*</url-pattern> <!-- this is based path for all API endpoint-->
+    </servlet-mapping>
+
+</web-app>
+
 - Implement a subclass of javax.ws.rs.core.Application and use the @ApplicationPath("/api/v1")
 annotation to establish your API’s versioned entry point.
+
+//PART1 Configuration class for the REST API
+
+import javax.ws.rs.ApplicationPath;   // Base API path 
+import javax.ws.rs.core.Application; // This shows the based class for configuring JAX-RS application
+
+@ApplicationPath("/api/v1") // Sets the base URL for all endpoints, which for example ”rooms” -> ”/api/v1/rooms”)
+public class ApplicationConfig extends Application {
+
+    // Empty class – used only to activate JAX-RS and define base path
+    // Jersey automatically scans for resources and providers
+}
+
 
 Question: In your report, explain the default lifecycle of a JAX-RS Resource class. Is a
 new instance instantiated for every incoming request, or does the runtime treat it as a
 singleton? Elaborate on how this architectural decision impacts the way you manage and
 synchronize your in-memory data structures (maps/lists) to prevent data loss or race con-
 ditions.
+
+Life cycle: 
+**// This class acts as an in-memory database 
+public class DataStore {
+
+    // Stores all rooms using room ID as key
+    public static final Map<String, Room> rooms = new ConcurrentHashMap<>();
+
+    // Stores all sensors using sensor ID as key
+    public static final Map<String, Sensor> sensors = new ConcurrentHashMap<>();
+
+    // Stores sensor readings:
+    // Key = sensor ID
+    // Value = list of readings for that sensor
+    public static final Map<String, List<SensorReading>> readings = new ConcurrentHashMap<>();
+
+    // Private constructor prevents creating instances of this class
+    // (since we only use static data)
+    private DataStore() {
+    }
+}
+
+Answer: 
+JAX-RS classes uses request scoped which takes new resources instances to create the incoming request than treating it as a singleton.
+Due to this lifecycle, the in memory data would not be stored in the normal instances fields that is inside of the classes. As the resources
+would just belong to one request than having multiple which then becomes not as useful. For this model, all of this is stored in the DataStore
+class as it uses static collections. It makes sure that the request access the same in memory data. This is done so that when multiple client
+uses the API, it will stay consistance to reduce the risk of lost updates. This is why we use the ConcurrentHashMap as it is used
+for thread safe data storage in multi threaded environments (examples uses for rooms, sensors and readings).
 
 
 
