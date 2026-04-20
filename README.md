@@ -126,11 +126,17 @@ API Request & Response Logging Filters (5 Marks)
 - Question: Why is it advantageous to use JAX-RS filters for cross-cutting concerns like
 logging, rather than manually inserting Logger.info() statements inside every single re-
 source method?
+
 Answer:
+JAX-RS filters for handling cross cutting concerns such as logging is advanageous because it allows developers to centralise the funcationality 
+in a single location rather than dulicating logging logic across multiple resource methods. Doing the implementation logging at the filter with request
+and responses that can be consistently captured without modifying individual endpoint implementations. This helps to maintain the approach as if changes
+happens to the logging behaviours it would need to be made in single place, so that it reduces duplication and making the code more robust amd cleaner
+to manage. Therefore, it helps having it consistent logging strategy across the API entirly as it helps for debugging and moitoring. If it has to 
+manually inserting the logger statements into each resources method, it would become repetitive and would have inconsistencies with the code making
+it harder to read and maintain the scale. 
 
 
-### Question 3
-Using JAX-RS filters for handling cross-cutting concerns such as logging is advantageous because it allows developers to centralise this functionality in a single location rather than duplicating logging logic across multiple resource methods. By implementing logging at the filter level, every incoming request and outgoing response can be consistently captured without modifying individual endpoint implementations. This approach improves maintainability, as changes to logging behaviour only need to be made in one place, and it reduces code duplication, making the overall codebase cleaner and easier to manage. Furthermore, it enforces a consistent logging strategy across the entire API, which is important for debugging, monitoring, and auditing purposes. In contrast, manually inserting Logger statements into each resource method would lead to repetitive code, increase the likelihood of inconsistencies, and make the application harder to maintain as it scales.
 
 
 
