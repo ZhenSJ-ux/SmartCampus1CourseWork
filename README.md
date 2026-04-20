@@ -51,7 +51,7 @@ http://localhost:8080/SmartCampus1/api/v1
 - Tomcat
 
 
-## Part1 
+## Part1 Service Architecture & Setup (10 Marks)
 1. Project & Application Configuration (5 Marks):
 
 Bootstrap a Maven project integrating a JAX-RS implementation (e.g., Jersey) and a lightweight
@@ -261,8 +261,37 @@ public class DiscoveryResource {
 considered a hallmark of advanced RESTful design (HATEOAS)? How does this approach
 benefit client developers compared to static documentation?
 
+Hypermedia is considered a hall mark of advanced RESTful design as it allows clients to discover the resources that is available and that the actions goes through the 
+API response. How this benefits the cleint developers compared to static documentation in several ways such as the reducing the need for hardcoded URLs, when the server
+provides the correct links for the runtime. It also helps the maintainability as the endpoint can change without breaking any existing client. This helps to enchances 
+the usability as the developers can explore and have ways of interaction with the API without any uses of documentation.
 
-## Part2
+## Part2 Room Management (20 Marks)
+
+1. Room Resource Implementation (10 Marks):
+- Develop a SensorRoom Resource class to manage the /api/v1/rooms path.
+- GET /: Provide a comprehensive list of all rooms.
+- POST /: Enable the creation of new rooms. Ensure the service returns appropriate feed-
+back upon success.
+- GET /{roomld}: Allow users to fetch detailed metadata for a specific room.
+- Question: When returning a list of rooms, what are the implications of returning only
+IDs versus returning the full room objects? Consider network bandwidth and client side
+processing.
+
+
+
+
+
+
+
+2. Room Deletion & Safety Logic (10 Marks):
+- Implement DELETE /{roomld} to allow room decommissioning.
+- Business Logic Constraint: To prevent data orphans, a room cannot be deleted if it still
+has active sensors assigned to it. If a deletion is attempted on a room with sensors, your
+service must block the request and return a custom error response (as detailed in Part 5).
+- Question: Is the DELETE operation idempotent in your implementation? Provide a detailed
+justification by describing what happens if a client mistakenly sends the exact same DELETE
+request for a room multiple times.
 
 
 
