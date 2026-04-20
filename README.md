@@ -241,7 +241,7 @@ public class DiscoveryResource {
         // Basic API information
         response.put("api", "Smart Campus Sensor & Room Management API"); // API name
         response.put("version", "v1");                                    // API version
-        response.put("contact", "w2086907@westminster.ac.uk");            // Contact info just for example
+        response.put("contact", "yourname@westminster.ac.uk");            // Contact info just for example
 
         // Create links to available resources
         Map<String, String> links = new HashMap<>();
