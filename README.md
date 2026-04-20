@@ -274,10 +274,64 @@ the usability as the developers can explore and have ways of interaction with th
 - POST /: Enable the creation of new rooms. Ensure the service returns appropriate feed-
 back upon success.
 - GET /{roomld}: Allow users to fetch detailed metadata for a specific room.
+
+public class RoomResource {
+    @GET // GET room and retrieves all rooms
+    public Response getAllRooms() {
+        // Get all rooms from shared DataStore
+        List<Room> rooms = new ArrayList<>(DataStore.rooms.values());
+        // Return list of rooms (full objects, not just IDs)
+        return Response.ok(rooms).build();
+    }
+
+    @POST // POST rooms to create new room
+    public Response createRoom(Room room, @Context UriInfo uriInfo) {
+        
+        // Validate input (room must have an ID)
+        if (room == null || room.getId() == null || room.getId().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Room id is required\"}")
+                    .build();
+        }
+        // prevents duplication of room IDs
+        if (DataStore.rooms.containsKey(room.getId())) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"error\":\"Room with this id already exists\"}")
+                    .build();
+        }
+        // Ensure sensor list is initialized
+        if (room.getSensorIds() == null) {
+            room.setSensorIds(new ArrayList<>());
+        }
+        // Store new room in shared DataStore
+        DataStore.rooms.put(room.getId(), room);
+        // Build URI for created resource e.g /room/R1
+        URI uri = uriInfo.getAbsolutePathBuilder().path(room.getId()).build();
+        // this returns 201 created with room object
+        return Response.created(uri).entity(room).build();
+    }
+
+    @GET // GET /rooms/{roomId} to get a specific room
+    @Path("/{roomId}")
+    public Response getRoomById(@PathParam("roomId") String roomId) {
+        //Looks up in Datastore
+        Room room = DataStore.rooms.get(roomId);
+        // return 404 if the room is not found
+        if (room == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\":\"Room not found\"}")
+                    .build();
+        }
+
+        return Response.ok(room).build();
+    }
+
 - Question: When returning a list of rooms, what are the implications of returning only
 IDs versus returning the full room objects? Consider network bandwidth and client side
 processing.
-
+Answer:
+When returing only room IDs it will use less network bandwidth which means it uses smaller response. This mean it can be processed faster when it comes to many
+rooms. But this then 
 
 
 
@@ -286,15 +340,109 @@ processing.
 
 2. Room Deletion & Safety Logic (10 Marks):
 - Implement DELETE /{roomld} to allow room decommissioning.
+
+@DELETE // DELETE /rooms/{roomId} to delete a room
+    @Path("/{roomId}")
+    public Response deleteRoom(@PathParam("roomId") String roomId) {
+        //Looks up in Datastore
+        Room room = DataStore.rooms.get(roomId);
+        // return 404 if the room is not found
+        if (room == null) {
+        return Response.status(Response.Status.NOT_FOUND)
+                .entity("{\"error\":\"Room not found\"}")
+                .build();
+    }
+    //Cannot delete room if it has sensors
+    if (room.getSensorIds() != null && !room.getSensorIds().isEmpty()) {
+        //throws custom exception that will be handle by ExceptionMapper for (409) part5
+        throw new RoomNotEmptyException("Room cannot be deleted because it still has sensors assigned.");
+    }
+    // removes the room from datastore
+    DataStore.rooms.remove(roomId);
+    //returns if it is sucessful 
+    return Response.ok("{\"message\":\"Room deleted successfully\"}").build();
+}
+    
+}
+
 - Business Logic Constraint: To prevent data orphans, a room cannot be deleted if it still
 has active sensors assigned to it. If a deletion is attempted on a room with sensors, your
 service must block the request and return a custom error response (as detailed in Part 5).
+
+// PART 5: Custom exception for preventing deletion of a room that still has sensors
+public class RoomNotEmptyException extends RuntimeException {
+
+    // Constructor that accepts an error message
+    public RoomNotEmptyException(String message) {
+
+        // Calls parent RuntimeException to store the message
+        super(message);
+    }
+}
+
+
+// PART 5: Exception Mapper for handling room deletion conflicts (409 Conflict)
+
+import com.mycompany.smartcampus1.exception.ApiError;              // Custom error response structure
+import com.mycompany.smartcampus1.exception.RoomNotEmptyException; // Custom exception when room has sensors
+import javax.ws.rs.core.Response;        // Used to build the HTTP responses
+import javax.ws.rs.ext.ExceptionMapper; // Interface to map exceptions to the HTTP responses
+import javax.ws.rs.ext.Provider;         // Uses this class as a JAX-RS provider
+
+@Provider // Allows Jersey to detect and use this mapper automatically
+public class RoomNotEmptyExceptionMapper implements ExceptionMapper<RoomNotEmptyException> {
+
+    // PART 5: Convert RoomNotEmptyException into HTTP 409 Conflict response
+    @Override
+    public Response toResponse(RoomNotEmptyException ex) {
+
+        // Create structured JSON error response
+        ApiError error = new ApiError(
+                409,              // HTTP status code
+                "Conflict",       // Error type
+                ex.getMessage()   // Message from exception
+        );
+        // Returns the 409 Conflict with JSON body
+        return Response.status(Response.Status.CONFLICT)
+                .entity(error)
+                .build();
+    }
+}
+
 - Question: Is the DELETE operation idempotent in your implementation? Provide a detailed
 justification by describing what happens if a client mistakenly sends the exact same DELETE
 request for a room multiple times.
 
+Answer:
+The DELETE is idempotent as this is in implementation. If the room exists and has no sensors assigned to it, then the DELETE can request to remove it successfully. However, if
+the client send the exact same DELETE request, then the room does not exisit and will return with a API saying 404 Not Found. The server state will not change after the first
+deletion which would then result the operation is still idempotent.
+
+Part 3: Sensor Operations & Linking (20 Marks)
+1. Sensor Resource & Integrity (10 Marks):
+- Implement SensorResource to manage the /api/vl/sensors collection.
+- POST /: When a new sensor is registered, your logic must verify that the roomld specified
+in the request body actually exists in the system.
+
+- Question: We explicitly use the @Consumes (MediaType.APPLICATION_JSON) annotation on
+the POST method. Explain the technical consequences if a client attempts to send data in
+a different format, such as text/plain or application/xml. How does JAX-RS handle this
+mismatch?
 
 
+
+
+
+
+2. Filtered Retrieval & Search (10 Marks):
+- Enhance GET /api/vl/sensors to support an optional query parameter named type (e.g.,
+GET /api/vl/sensors?type=CO2). If provided, the response must filter the list to only in-
+clude matching sensors.
+
+- Question: You implemented this filtering using @QueryParam. Contrast this with an alterna-
+tive design where the type is part of the URL path (e.g., /api/vl/sensors/type/CO2). Why
+is the query parameter approach generally considered superior for filtering and searching
+collections?
 
 
 
