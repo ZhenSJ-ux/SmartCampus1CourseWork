@@ -169,6 +169,7 @@ public class ApplicationConfig extends Application {
 }
 
 
+
 Question: In your report, explain the default lifecycle of a JAX-RS Resource class. Is a
 new instance instantiated for every incoming request, or does the runtime treat it as a
 singleton? Elaborate on how this architectural decision impacts the way you manage and
