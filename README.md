@@ -260,7 +260,7 @@ public class DiscoveryResource {
 - Question: Why is the provision of ”Hypermedia” (links and navigation within responses)
 considered a hallmark of advanced RESTful design (HATEOAS)? How does this approach
 benefit client developers compared to static documentation?
-
+Answer:
 Hypermedia is considered a hall mark of advanced RESTful design as it allows clients to discover the resources that is available and that the actions goes through the 
 API response. How this benefits the cleint developers compared to static documentation in several ways such as the reducing the need for hardcoded URLs, when the server
 provides the correct links for the runtime. It also helps the maintainability as the endpoint can change without breaking any existing client. This helps to enchances 
@@ -331,10 +331,10 @@ IDs versus returning the full room objects? Consider network bandwidth and clien
 processing.
 Answer:
 When returing only room IDs it will use less network bandwidth which means it uses smaller response. This mean it can be processed faster when it comes to many
-rooms. But this then 
-
-
-
+rooms. But this then creates limited information which clients would need to make more request for full room details. This then increases the numbers of API
+requests. If the room objects gives the client all relvant information with in one response. It will be convenient as it would allow to reduce the need of
+extra request which then becomes a problem as the repsones is bigger and bandwidth would increase the usage, in which will result into both uses for client and server.
+In the end returning just the IDs is more reliable as it does not need to use more bandwidth while returing full room will be used for client. 
 
 
 
@@ -418,20 +418,75 @@ The DELETE is idempotent as this is in implementation. If the room exists and ha
 the client send the exact same DELETE request, then the room does not exisit and will return with a API saying 404 Not Found. The server state will not change after the first
 deletion which would then result the operation is still idempotent.
 
-Part 3: Sensor Operations & Linking (20 Marks)
+## Part 3: Sensor Operations & Linking (20 Marks)
+
 1. Sensor Resource & Integrity (10 Marks):
 - Implement SensorResource to manage the /api/vl/sensors collection.
+  
+@Path("/sensors")                         // Base endpoint: /api/v1/sensors
+@Produces(MediaType.APPLICATION_JSON)     // All responses are JSON
+@Consumes(MediaType.APPLICATION_JSON)     // Accept JSON input
+  
 - POST /: When a new sensor is registered, your logic must verify that the roomld specified
 in the request body actually exists in the system.
+
+// PART 3: Create a new sensor
+    @POST
+    public Response createSensor(Sensor sensor, @Context UriInfo uriInfo) {
+
+        // Validate sensor ID
+        if (sensor == null || sensor.getId() == null || sensor.getId().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Sensor id is required\"}")
+                    .build();
+        }
+
+        // Validate roomId exists in request
+        if (sensor.getRoomId() == null || sensor.getRoomId().trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"roomId is required\"}")
+                    .build();
+        }
+
+        // Prevent duplicate sensor IDs
+        if (DataStore.sensors.containsKey(sensor.getId())) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity("{\"error\":\"Sensor with this id already exists\"}")
+                    .build();
+        }
+
+        // Validate that the referenced room exists
+        Room room = DataStore.rooms.get(sensor.getRoomId());
+        if (room == null) {
+            throw new LinkedResourceNotFoundException("Referenced room does not exist");
+        }
+
+        // Store sensor in DataStore
+        DataStore.sensors.put(sensor.getId(), sensor);
+
+        // Link sensor to room
+        room.getSensorIds().add(sensor.getId());
+
+        // Initialize empty readings list for this sensor
+        DataStore.readings.put(sensor.getId(), new ArrayList<SensorReading>());
+
+        // Build URI for the created resource
+        URI uri = uriInfo.getAbsolutePathBuilder().path(sensor.getId()).build();
+
+        // Return 201 Created response
+        return Response.created(uri).entity(sensor).build();
+    }
+
 
 - Question: We explicitly use the @Consumes (MediaType.APPLICATION_JSON) annotation on
 the POST method. Explain the technical consequences if a client attempts to send data in
 a different format, such as text/plain or application/xml. How does JAX-RS handle this
 mismatch?
-
-
-
-
+Answer:
+When using @Consumes (MediaType.APPLICATION_JSON) it will let JAX-RS POST to only accepts request bodies that is in JSON format.
+So when the client sends the data that uses different content type (example application/xml) it will request the media type that
+is not matched with what the method is connected to. Therefore, JAX-RS will not make attempts to the map the body and would return
+HTTP 415.
 
 
 2. Filtered Retrieval & Search (10 Marks):
@@ -439,10 +494,56 @@ mismatch?
 GET /api/vl/sensors?type=CO2). If provided, the response must filter the list to only in-
 clude matching sensors.
 
+// PART 3: GET all sensors (with optional filtering)
+    @GET
+    public Response getSensors(@QueryParam("type") String type) {
+
+        // Get all sensors from DataStore
+        List<Sensor> sensors = new ArrayList<>(DataStore.sensors.values());
+
+        // If query parameter exists, filter sensors by type
+        if (type != null && !type.trim().isEmpty()) {
+            sensors = sensors.stream()
+                    .filter(sensor -> sensor.getType() != null
+                    && sensor.getType().equalsIgnoreCase(type))
+                    .collect(Collectors.toList());
+        }
+
+        // Return list of sensors
+        return Response.ok(sensors).build();
+    }
+
 - Question: You implemented this filtering using @QueryParam. Contrast this with an alterna-
 tive design where the type is part of the URL path (e.g., /api/vl/sensors/type/CO2). Why
 is the query parameter approach generally considered superior for filtering and searching
 collections?
+Answer:
+Why @QueryParam is considered more appropriate for filtering and searching is because if client is still on request for the same collection for resource,
+/sensor, which then looks for narrowing the results. Example such as /sensor?type=CO2 which means to show the collection but only that are CO2. Using
+/api/vl/sensors/type/CO2 would consider to be less useful as it filter look for other resources. Which is why Query parameters are more flexible and
+easier to extend when more filters are needed.
+
+## Part 4: Deep Nesting with Sub - Resources (20 Marks)
+
+A key requirement is to maintain a historical log of readings for every sensor on campus.
+1. The Sub-Resource Locator Pattern (10 Marks):
+- In your SensorResource class, implement a sub-resource locator method for the path {sensorld}/readi
+This method should return an instance of a dedicated SensorReadingResource class.
+
+- Question: Discuss the architectural benefits of the Sub-Resource Locator pattern. How
+does delegating logic to separate classes help manage complexity in large APIs compared
+to defining every nested path (e.g., sensors/{id}/readings/{rid}) in one massive con-
+troller class?
+
+
+
+2. Historical Data Management (10 Marks):
+- Within SensorReadingResource, implement GET / to fetch history and POST / to append
+new readings for that specific sensor context.
+
+- Side Effect: A successful POST to a reading must trigger an update to the currentValue
+field on the corresponding parent Sensor object to ensure data consistency across the
+API.
 
 
 
