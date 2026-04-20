@@ -57,6 +57,67 @@ http://localhost:8080/SmartCampus1/api/v1
 Bootstrap a Maven project integrating a JAX-RS implementation (e.g., Jersey) and a lightweight
 servlet container or embedded server.
 
+ <?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>com.mycompany</groupId>
+    <artifactId>SmartCampus1</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <!-- added this war instead of jar as it was for tomcat--> 
+    <!-- All of this will be based for part 1 for the start for using tomcat-->
+    <packaging>war</packaging>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <exec.mainClass>com.mycompany.smartcampus1.SmartCampus1</exec.mainClass>
+        
+        <!-- This part was for the Jersey version for REST api-->
+        <jersey.version>2.39</jersey.version>
+    </properties>
+    <dependencies>
+        <!-- This is the Jersey servlet container which runs the REST API on Tomcat-->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.inject</groupId>
+            <artifactId>jersey-hk2</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <!-- JASON uses to convert the objects in JAVA--> 
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <!-- This was used for the JAX-RS API for like @GET, @POST-->
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.1.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Uses servelt API for the required in tomcat-->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <!-- Shows the name of the URL that will appear-->
+    <build>
+        <finalName>SmartCampus</finalName>
+    </build>
+
+</project>
+
+
 - Implement a subclass of javax.ws.rs.core.Application and use the @ApplicationPath("/api/v1")
 annotation to establish your API’s versioned entry point.
 
