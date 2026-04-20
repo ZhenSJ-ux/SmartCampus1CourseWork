@@ -154,14 +154,17 @@ servlet container:
 </web-app>
 
 
+
+
+
 Implement a subclass of javax.ws.rs.core.Application and use the @ApplicationPath("/api/v1")
 annotation to establish your API’s versioned entry point: 
 
-// PART1 Configuration class for the REST API
-import javax.ws.rs.ApplicationPath;    // Base API path 
-import javax.ws.rs.core.Application;  // This shows the based class for configuring JAX-RS application
+//PART1 Configuration class for the REST API
+import javax.ws.rs.ApplicationPath;   // Base API path 
+import javax.ws.rs.core.Application; // This shows the based class for configuring JAX-RS application
 
-@ApplicationPath("/api/v1")  // Sets the base URL for all endpoints, which for example ”rooms” -> ”/api/v1/rooms”)
+@ApplicationPath("/api/v1") // Sets the base URL for all endpoints, which for example ”rooms” -> ”/api/v1/rooms”)
 public class ApplicationConfig extends Application {
 
     // Empty class – used only to activate JAX-RS and define base path
@@ -206,9 +209,60 @@ uses the API, it will stay consistance to reduce the risk of lost updates. This 
 for thread safe data storage in multi threaded environments (examples uses for rooms, sensors and readings).
 
 
+The ”Discovery” Endpoint (5 Marks):
+
+- Implement a root ”Discovery” endpoint at GET /api/v1. This should return a JSON object
+providing essential API metadata: versioning info, administrative contact details, and a
+map of primary resource collections (e.g., ”rooms” -> ”/api/v1/rooms”).
 
 
+// PART 1: Discovery endpoint 
 
+import java.util.HashMap;          // Used to create response objects
+import java.util.Map;              // Key-value structure for JSON response
+import javax.ws.rs.GET;            // HTTP GET method
+import javax.ws.rs.Path;           // Defines endpoint path
+import javax.ws.rs.Produces;       // Defines response format
+import javax.ws.rs.core.MediaType; // Media type (JSON)
+
+// Base endpoint: /api/v1
+@Path("/")
+@Produces(MediaType.APPLICATION_JSON) // Return JSON responses
+
+public class DiscoveryResource {
+    
+    // PART 1: Simple test endpoint to check API is running
+    @GET
+    public Map<String, Object> discover() {
+
+        // Create main response object
+        Map<String, Object> response = new HashMap<>();
+
+        // Basic API information
+        response.put("api", "Smart Campus Sensor & Room Management API"); // API name
+        response.put("version", "v1");                                    // API version
+        response.put("contact", "w2086907@westminster.ac.uk");            // Contact info just for example
+
+        // Create links to available resources
+        Map<String, String> links = new HashMap<>();
+        links.put("rooms", "/api/v1/rooms");     // Endpoint for rooms
+        links.put("sensors", "/api/v1/sensors"); // Endpoint for sensors
+
+        // Add links to response
+        response.put("resources", links);
+
+        // Return JSON response
+        return response;
+    }
+}
+
+
+- Question: Why is the provision of ”Hypermedia” (links and navigation within responses)
+considered a hallmark of advanced RESTful design (HATEOAS)? How does this approach
+benefit client developers compared to static documentation?
+
+
+##Part2
 
 
 
