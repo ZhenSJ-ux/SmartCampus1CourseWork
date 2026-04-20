@@ -153,14 +153,15 @@ servlet container:
 
 </web-app>
 
-- Implement a subclass of javax.ws.rs.core.Application and use the @ApplicationPath("/api/v1")
+
+Implement a subclass of javax.ws.rs.core.Application and use the @ApplicationPath("/api/v1")
 annotation to establish your API’s versioned entry point: 
 
-//PART1 Configuration class for the REST API
-import javax.ws.rs.ApplicationPath;   // Base API path 
-import javax.ws.rs.core.Application; // This shows the based class for configuring JAX-RS application
+// PART1 Configuration class for the REST API
+import javax.ws.rs.ApplicationPath;    // Base API path 
+import javax.ws.rs.core.Application;  // This shows the based class for configuring JAX-RS application
 
-@ApplicationPath("/api/v1") // Sets the base URL for all endpoints, which for example ”rooms” -> ”/api/v1/rooms”)
+@ApplicationPath("/api/v1")  // Sets the base URL for all endpoints, which for example ”rooms” -> ”/api/v1/rooms”)
 public class ApplicationConfig extends Application {
 
     // Empty class – used only to activate JAX-RS and define base path
