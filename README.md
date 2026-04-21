@@ -137,12 +137,37 @@ manually inserting the logger statements into each resources method, it would be
 it harder to read and maintain the scale. 
 
 
+## part 1
+http://localhost:8080/SmartCampus1/api/v1
 
+## part 2
+http://localhost:8080/SmartCampus1/api/v1/rooms
+{
+  "id": "R1",
+  "name": "Lecture Hall",
+  "capacity": 100
+}
 
+http://localhost:8080/SmartCampus1/api/v1/rooms/R1
 
+## part 3
+http://localhost:8080/SmartCampus1/api/v1/rooms/sensors
+{
+  "id": "S1",
+  "type": "CO2",
+  "status": "ACTIVE",
+  "currentValue": 0,
+  "roomId": "R1"
+}
+http://localhost:8080/SmartCampus1/api/v1/rooms/S1/sensors
 
+http://localhost:8080/SmartCampus1/api/v1/rooms/S1/sensors?type=CO2
 
-
+## part 4
+http://localhost:8080/SmartCampus1/api/v1/sensors/S1/readings
+{
+  "value": 25.5
+}
 
 
 
