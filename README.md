@@ -138,11 +138,11 @@ it harder to read and maintain the scale.
 
 ## Heres the list of the curl commands:
 
-## part1 
+## Part1 
 GET:
 curl --location 'http://localhost:8080/SmartCampus1/api/v1'
 
-## part2
+## Part2
 GET:
 curl --location 'http://localhost:8080/SmartCampus1/api/v1/rooms' \
 
@@ -166,7 +166,54 @@ curl --location --request DELETE 'http://localhost:8080/SmartCampus1/api/v1/room
 --header 'Content-Type: application/json' \
 --data '{ "id": "R1", "name": "Lecture Hall", "capacity": 100 } '
 
-## part3
+## Part3
+POST:
+curl --location 'http://localhost:8080/SmartCampus1/api/v1/sensors' \
+--header 'Content-Type: application/json' \
+--data '{ "id": "S1", "type": "CO2", "status": "ACTIVE", "currentValue": 0, "roomId": "R1" } '
+
+GET:
+curl --location --request GET 'http://localhost:8080/SmartCampus1/api/v1/sensors' \
+--header 'Content-Type: application/json' \
+--data '{ "id": "S1", "type": "CO2", "status": "ACTIVE", "currentValue": 0, "roomId": "R1" } '
+
+GET:
+curl --location 'http://localhost:8080/SmartCampus1/api/v1/sensors?type=CO2' \
+
+## Part4
+POST:
+curl --location 'http://localhost:8080/SmartCampus1/api/v1/sensors/S1/readings' \
+--header 'Content-Type: application/json' \
+--data '{ "value": 25.5 } '
+
+GET:
+curl --location --request GET 'http://localhost:8080/SmartCampus1/api/v1/sensors/S1/readings' \
+--header 'Content-Type: application/json' \
+--data '{ "value": 25.5 } '
+
+GET:
+curl --location --request GET 'http://localhost:8080/SmartCampus1/api/v1/sensors' \
+--header 'Content-Type: application/json' \
+--data '{ "value": 25.5 } '
+
+## Part5
+DELETE:
+curl --location --request DELETE 'http://localhost:8080/SmartCampus1/api/v1/rooms/R1 ' \
+--data ''
+
+POST:
+curl --location 'http://localhost:8080/SmartCampus1/api/v1/sensors' \
+--header 'Content-Type: application/json' \
+--data '{ "id": "S2", "type": "TEMP", "status": "MAINTENANCE", "currentValue": 0, "roomId": "R1" } '
+
+POST: 
+curl --location 'http://localhost:8080/SmartCampus1/api/v1/sensors/S2/readings' \
+--header 'Content-Type: application/json' \
+--data '{ "value": 30.0 } '
+
+GET: 
+curl --location 'http://localhost:8080/SmartCampus1/api/v1/rooms ' \
+--data ''
 
 
 
