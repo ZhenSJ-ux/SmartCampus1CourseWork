@@ -136,6 +136,36 @@ to manage. Therefore, it helps having it consistent logging strategy across the 
 manually inserting the logger statements into each resources method, it would become repetitive and would have inconsistencies with the code making
 it harder to read and maintain the scale. 
 
+Heres the list of the curl commands:
+
+part1 
+GET:
+curl --location 'http://localhost:8080/SmartCampus1/api/v1'
+
+part2
+GET:
+curl --location 'http://localhost:8080/SmartCampus1/api/v1/rooms' \
+
+POST:
+curl --location 'http://localhost:8080/SmartCampus1/api/v1/rooms' \
+--header 'Content-Type: application/json' \
+--data '{"id": "R1","name": "Lecture Hall", "capacity": 100 }'
+
+GET:
+curl --location --request GET 'http://localhost:8080/SmartCampus1/api/v1/rooms' \
+--header 'Content-Type: application/json' \
+--data '{ "id": "R1", "name": "Lecture Hall", "capacity": 100 } '
+
+GET:
+curl --location --request GET 'http://localhost:8080/SmartCampus1/api/v1/rooms/R1' \
+--header 'Content-Type: application/json' \
+--data '{ "id": "R1", "name": "Lecture Hall", "capacity": 100 } '
+
+DELETE:
+curl --location --request DELETE 'http://localhost:8080/SmartCampus1/api/v1/rooms/R1' \
+--header 'Content-Type: application/json' \
+--data '{ "id": "R1", "name": "Lecture Hall", "capacity": 100 } '
+
 
 
 
