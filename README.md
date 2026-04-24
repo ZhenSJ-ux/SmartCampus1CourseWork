@@ -1,6 +1,7 @@
-Module: Client Server Architectures
-student id:w2086907
-Title: ”Smart Campus” Sensor & Room Management API
+## Module: Client Server Architectures
+## student name: Shijie Zheng
+## student id:w2086907
+## Title: ”Smart Campus” Sensor & Room Management API
 
 
 ## Part1 Service Architecture & Setup (10 Marks)
